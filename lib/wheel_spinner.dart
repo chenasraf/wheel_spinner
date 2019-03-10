@@ -3,25 +3,48 @@ library wheel_spinner;
 import 'package:flutter/material.dart';
 import 'package:wheel_spinner/utils.dart';
 
+typedef Widget ValueBuilder(double value);
+typedef String ValueStringBuilder(double value);
+
 /// Shows a "dial" spinner that can be dragged up or down, either unlimited or
 /// restricted by [max] and [min].
 class WheelSpinner extends StatefulWidget {
   /// Callback for when the user drags the slider
   final Function(double value) onSlideUpdate;
+
   /// Callback for when the user lets go of the slider
   final Function(double value) onSlideDone;
-  /// The widget width
+
+  /// The widget [width]
   final double width;
-  /// The widget height
+
+  /// The widget [height]
   final double height;
-  /// The initial value for the slider
+
+  /// The initial [value] for the slider
   final double value;
+
   /// Minimum value to allow sliding to. Also appears on the bottom left of the slider
   final double min;
+
   /// Minimum value to allow sliding to. Also appears on the top left of the slider
   final double max;
-  /// Allows adding a widget above the slider
-  final Widget Function(double value) labelBuilder;
+
+  /// Builder for children of the slider.
+  final ValueBuilder childBuilder;
+
+  /// Allows overriding the format of the left top and bottom labels for the [min]/[max] values
+  final ValueStringBuilder minMaxLabelBuilder;
+
+  /// Allows to override style of labels
+  final TextStyle labelStyle;
+
+  /// Speed in which the user can drag the slider. Faster speed factor = easier to increment
+  /// or discrement [value]
+  final double dragSpeedFactor = 1.0;
+
+  static ValueStringBuilder defaultMinMaxLabelBuilder =
+      (v) => v.toStringAsFixed(2);
 
   const WheelSpinner({
     Key key,
@@ -32,7 +55,10 @@ class WheelSpinner extends StatefulWidget {
     this.min = double.negativeInfinity,
     this.max = double.infinity,
     this.value = 0.5,
-    this.labelBuilder,
+    this.childBuilder,
+    this.minMaxLabelBuilder,
+    this.labelStyle,
+    // this.dragSpeedFactor = 1.0,
   }) : super(key: key);
 
   @override
@@ -49,6 +75,16 @@ class _WheelSpinnerState extends State<WheelSpinner> {
   @override
   Widget build(BuildContext context) {
     const double shadowOffset = 0.2;
+    ValueStringBuilder minMaxBuilder =
+        widget.minMaxLabelBuilder ?? WheelSpinner.defaultMinMaxLabelBuilder;
+    double labelFontSize = Theme.of(context).textTheme.body1.fontSize * 0.75;
+    TextStyle labelStyle =
+        TextStyle(fontSize: labelFontSize).merge(widget.labelStyle);
+
+    String minText =
+        widget.max < double.infinity ? minMaxBuilder(widget.max) : null;
+    String maxText =
+        widget.min > double.negativeInfinity ? minMaxBuilder(widget.min) : null;
 
     return Row(
       children: <Widget>[
@@ -59,45 +95,20 @@ class _WheelSpinnerState extends State<WheelSpinner> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: <Widget>[
-                Text(
-                  widget.max.round().toString(),
-                  textScaleFactor: 0.75,
-                ),
-                Text(
-                  widget.min.round().toString(),
-                  textScaleFactor: 0.75,
-                ),
+                minText != null
+                    ? Text(minText, style: labelStyle)
+                    : Container(),
+                maxText != null
+                    ? Text(maxText, style: labelStyle)
+                    : Container(),
               ],
             ),
           ),
         ),
         GestureDetector(
-          onVerticalDragStart: (details) {
-            setState(() {
-              dragOffset = details.globalPosition;
-              dragValue = value;
-            });
-          },
-          onVerticalDragUpdate: (details) {
-            var newValue = clamp(
-                dragValue - (details.globalPosition - dragOffset).dy / 20.0,
-                widget.min,
-                widget.max);
-            setState(() {
-              value = newValue;
-            });
-            if (widget.onSlideUpdate != null) {
-              widget.onSlideUpdate(value);
-            }
-          },
-          onVerticalDragEnd: (details) {
-            setState(() {
-              dragOffset = null;
-            });
-            if (widget.onSlideDone != null) {
-              widget.onSlideDone(value);
-            }
-          },
+          onVerticalDragStart: onDragStart,
+          onVerticalDragUpdate: onDragUpdate,
+          onVerticalDragEnd: onDragDone,
           child: SizedBox.fromSize(
             size: Size(widget.width.toDouble(), widget.height.toDouble()),
             child: Container(
@@ -105,10 +116,7 @@ class _WheelSpinnerState extends State<WheelSpinner> {
                 children: List<Widget>.generate(
                       20,
                       (i) {
-                        double valueFraction = (value.ceil() - value) * 10;
-                        double top =
-                            (widget.height / 10 * i) - widget.height / 2;
-                        top += valueFraction;
+                        var top = calcTop(value, i);
                         return Positioned.fromRect(
                           rect: Rect.fromLTWH(
                             0.0,
@@ -122,8 +130,8 @@ class _WheelSpinnerState extends State<WheelSpinner> {
                         );
                       },
                     ).toList() +
-                    (widget.labelBuilder != null
-                        ? [widget.labelBuilder(value)]
+                    (widget.childBuilder != null
+                        ? [widget.childBuilder(value)]
                         : []),
               ),
               decoration: BoxDecoration(
@@ -155,19 +163,52 @@ class _WheelSpinnerState extends State<WheelSpinner> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text(
-                  '+',
-                  textScaleFactor: 0.75,
-                ),
-                Text(
-                  '-',
-                  textScaleFactor: 0.75,
-                ),
+                Text('+', style: labelStyle),
+                Text('-', style: labelStyle),
               ],
             ),
           ),
         ),
       ],
     );
+  }
+
+  double calcTop(double value, int i) {
+    double valueFraction = (value.ceil() - value) * 10;
+    double indexedTop = (widget.height / 10 * i);
+    double widgetMiddle = widget.height / 2;
+    double top = indexedTop - widgetMiddle + valueFraction;
+    return top;
+  }
+
+  void onDragDone(details) {
+    setState(() {
+      dragOffset = null;
+    });
+    if (widget.onSlideDone != null) {
+      widget.onSlideDone(value);
+    }
+  }
+
+  void onDragUpdate(details) {
+    var newValue = clamp(
+        dragValue -
+            (details.globalPosition - dragOffset).dy /
+                (20.0 / widget.dragSpeedFactor),
+        widget.min,
+        widget.max);
+    setState(() {
+      value = newValue;
+    });
+    if (widget.onSlideUpdate != null) {
+      widget.onSlideUpdate(value);
+    }
+  }
+
+  void onDragStart(details) {
+    setState(() {
+      dragOffset = details.globalPosition;
+      dragValue = value;
+    });
   }
 }
