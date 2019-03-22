@@ -1,5 +1,7 @@
 library wheel_spinner;
 
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:wheel_spinner/utils.dart';
 
@@ -39,42 +41,83 @@ class WheelSpinner extends StatefulWidget {
   /// Allows to override style of labels
   final TextStyle labelStyle;
 
-  /// Speed in which the user can drag the slider. Faster speed factor = easier to increment
-  /// or discrement [value]
-  final double dragSpeedFactor = 1.0;
+  /// Override box decoration for the control
+  final BoxDecoration boxDecoration;
+
+  /// Override box border for the control's [boxDecoration].
+  /// If [boxDecoration] is specified, it overrides this property.
+  final Border border;
+
+  /// Override border radius for the control's [boxDecoration].
+  /// If [boxDecoration] is specified, it overrides this property.
+  final BorderRadius borderRadius;
+
+  /// Override background color for the control's [boxDecoration].
+  /// If [boxDecoration] is specified, it overrides this property.
+  final Color color;
+
+  /// Override background gradient for the control's [boxDecoration].
+  /// If [boxDecoration] is specified, it overrides this property.
+  final Gradient gradient;
+
+  /// Amount of divisions to show on the knob
+  final int dividerCount;
+
+  /// Color of the lines dividing the control.
+  final Color dividerColor;
+
+  ///
+  final double _dragSpeedFactor = 1.0;
 
   static ValueStringBuilder defaultMinMaxLabelBuilder =
       (v) => v.toStringAsFixed(2);
 
-  const WheelSpinner({
-    Key key,
-    this.onSlideUpdate,
-    this.onSlideDone,
-    this.width = 60,
-    this.height = 100,
-    this.min = double.negativeInfinity,
-    this.max = double.infinity,
-    this.value = 0.5,
-    this.childBuilder,
-    this.minMaxLabelBuilder,
-    this.labelStyle,
-    // this.dragSpeedFactor = 1.0,
-  }) : super(key: key);
+  const WheelSpinner(
+      {Key key,
+      this.onSlideUpdate,
+      this.onSlideDone,
+      this.width = 60,
+      this.height = 100,
+      this.min = double.negativeInfinity,
+      this.max = double.infinity,
+      this.value = 0.5,
+      this.childBuilder,
+      this.minMaxLabelBuilder,
+      this.labelStyle,
+      this.dividerCount = 10,
+      this.dividerColor,
+      this.boxDecoration,
+      this.border,
+      this.borderRadius,
+      this.color,
+      this.gradient})
+      : super(key: key);
 
   @override
-  _WheelSpinnerState createState() => _WheelSpinnerState(value: value);
+  _WheelSpinnerState createState() => _WheelSpinnerState();
 }
 
-class _WheelSpinnerState extends State<WheelSpinner> {
+class _WheelSpinnerState extends State<WheelSpinner>
+    with TickerProviderStateMixin {
   double value;
-  double dragValue;
-  Offset dragOffset;
+  double dragStartValue;
+  Offset dragStartOffset;
+  AnimationController flingController;
+  Animation<double> flingAnimation;
+  void Function() currentFlingListener;
 
   _WheelSpinnerState({this.value});
 
   @override
+  void initState() {
+    flingAnimation = AlwaysStoppedAnimation(0.0);
+    flingController = AnimationController(vsync: this);
+    value = widget.value;
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    const double shadowOffset = 0.2;
     ValueStringBuilder minMaxBuilder =
         widget.minMaxLabelBuilder ?? WheelSpinner.defaultMinMaxLabelBuilder;
     double labelFontSize = Theme.of(context).textTheme.body1.fontSize * 0.75;
@@ -86,115 +129,136 @@ class _WheelSpinnerState extends State<WheelSpinner> {
     String maxText =
         widget.min > double.negativeInfinity ? minMaxBuilder(widget.min) : null;
 
-    return Row(
-      children: <Widget>[
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.only(right: 4.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: <Widget>[
-                minText != null
-                    ? Text(minText, style: labelStyle)
-                    : Container(),
-                maxText != null
-                    ? Text(maxText, style: labelStyle)
-                    : Container(),
-              ],
-            ),
-          ),
-        ),
-        GestureDetector(
-          onVerticalDragStart: onDragStart,
-          onVerticalDragUpdate: onDragUpdate,
-          onVerticalDragEnd: onDragDone,
-          child: SizedBox.fromSize(
-            size: Size(widget.width.toDouble(), widget.height.toDouble()),
-            child: Container(
-              child: Stack(
-                children: List<Widget>.generate(
-                      20,
-                      (i) {
-                        var top = calcTop(value, i);
-                        return Positioned.fromRect(
-                          rect: Rect.fromLTWH(
-                            0.0,
-                            top,
-                            widget.width.toDouble(),
-                            0,
-                          ),
-                          child: Divider(
-                            color: Colors.grey[600],
-                          ),
-                        );
-                      },
-                    ).toList() +
-                    (widget.childBuilder != null
-                        ? [widget.childBuilder(value)]
-                        : []),
-              ),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  stops: [0.0, shadowOffset, 1.0 - shadowOffset, 1.0],
-                  colors: [
-                    Colors.grey[350],
-                    Colors.grey[50],
-                    Colors.grey[50],
-                    Colors.grey[350]
-                  ],
-                ),
-                border: Border.all(
-                  width: 1,
-                  style: BorderStyle.solid,
-                  color: Colors.grey[600],
-                ),
-                borderRadius: BorderRadius.circular(3.5),
+    return Container(
+      height: widget.height,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(right: 4.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: <Widget>[
+                  minText != null
+                      ? Text(minText, style: labelStyle)
+                      : Container(),
+                  maxText != null
+                      ? Text(maxText, style: labelStyle)
+                      : Container(),
+                ],
               ),
             ),
           ),
-        ),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.only(left: 4.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text('+', style: labelStyle),
-                Text('-', style: labelStyle),
-              ],
+          AnimatedBuilder(
+            animation: flingAnimation,
+            builder: (context, child) => GestureDetector(
+                  onVerticalDragStart: onDragStart,
+                  onVerticalDragUpdate: onDragUpdate,
+                  onVerticalDragEnd: onDragDone,
+                  child: SizedBox.fromSize(
+                    size:
+                        Size(widget.width.toDouble(), widget.height.toDouble()),
+                    child: Container(
+                      child: Stack(
+                        children: List<Widget>.generate(
+                              widget.dividerCount + 1,
+                              (i) {
+                                var top =
+                                    lineTopPos(value, i, flingAnimation.value);
+                                return Positioned.fromRect(
+                                  rect: Rect.fromLTWH(
+                                    0.0,
+                                    top,
+                                    widget.width.toDouble(),
+                                    0,
+                                  ),
+                                  child: Divider(
+                                    color:
+                                        widget.dividerColor ?? Colors.grey[600],
+                                  ),
+                                );
+                              },
+                            ).toList() +
+                            (widget.childBuilder != null
+                                ? [widget.childBuilder(value)]
+                                : []),
+                      ),
+                      decoration: widget.boxDecoration ??
+                          _defaultBoxDecorationBuilder(),
+                    ),
+                  ),
+                ),
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(left: 4.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text('+', style: labelStyle),
+                  Text('-', style: labelStyle),
+                ],
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
-  double calcTop(double value, int i) {
-    double valueFraction = (value.ceil() - value) * 10;
-    double indexedTop = (widget.height / 10 * i);
-    double widgetMiddle = widget.height / 2;
-    double top = indexedTop - widgetMiddle + valueFraction;
+  BoxDecoration _defaultBoxDecorationBuilder() {
+    double shadowOffset = 0.2;
+    var decoration = BoxDecoration(
+      gradient: widget.gradient ?? widget.color == null
+          ? LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              stops: [0.0, shadowOffset, 1.0 - shadowOffset, 1.0],
+              colors: [
+                Colors.grey[350],
+                Colors.grey[50],
+                Colors.grey[50],
+                Colors.grey[350]
+              ],
+            )
+          : null,
+      color: widget.color,
+      border: widget.border ??
+          Border.all(
+            width: 1,
+            style: BorderStyle.solid,
+            color: Colors.grey[600],
+          ),
+      borderRadius: widget.borderRadius ?? BorderRadius.circular(3.5),
+    );
+    return decoration;
+  }
+
+  double lineTopPos(double value, int i, double fling) {
+    double valueFraction = (value.ceil() - value) * widget.dividerCount;
+    double indexedTop = (widget.height / widget.dividerCount * i);
+    double top = indexedTop + valueFraction;
     return top;
   }
 
-  void onDragDone(details) {
+  void onDragStart(details) {
+    flingController.stop();
+    flingAnimation = AlwaysStoppedAnimation(0.0);
     setState(() {
-      dragOffset = null;
+      dragStartOffset = details.globalPosition;
+      dragStartValue = value;
     });
-    if (widget.onSlideDone != null) {
-      widget.onSlideDone(value);
-    }
   }
 
   void onDragUpdate(details) {
+    flingController.stop();
     var newValue = clamp(
-        dragValue -
-            (details.globalPosition - dragOffset).dy /
-                (20.0 / widget.dragSpeedFactor),
+        dragStartValue -
+            (details.globalPosition - dragStartOffset).dy /
+                (20.0 / widget._dragSpeedFactor),
         widget.min,
         widget.max);
     setState(() {
@@ -205,10 +269,55 @@ class _WheelSpinnerState extends State<WheelSpinner> {
     }
   }
 
-  void onDragStart(details) {
+  void onDragDone(DragEndDetails details) {
     setState(() {
-      dragOffset = details.globalPosition;
-      dragValue = value;
+      dragStartOffset = null;
     });
+    double velocity = details.primaryVelocity;
+    if (velocity.abs() == 0) {
+      if (widget.onSlideDone != null) {
+        widget.onSlideDone(value);
+      }
+      return;
+    }
+    double originalValue = value;
+    currentFlingListener = flingListener(originalValue);
+    flingController.duration = Duration(milliseconds: velocity.abs().toInt());
+    flingAnimation =
+        Tween(begin: 0.0, end: velocity / 100).animate(CurvedAnimation(
+      curve: Curves.decelerate,
+      parent: flingController,
+    ))
+          ..addListener(currentFlingListener);
+    flingController
+      ..reset()
+      ..forward();
+  }
+
+  flingListener(double originalValue) {
+    return () {
+      double newValue =
+          clamp(originalValue - flingAnimation.value, widget.min, widget.max);
+      if (newValue != value) {
+        setState(() {
+          value = newValue;
+        });
+        if (flingAnimation.value == flingController.upperBound) {
+          if (widget.onSlideDone != null) {
+            widget.onSlideDone(value);
+          }
+        } else {
+          if (widget.onSlideUpdate != null) {
+            widget.onSlideUpdate(value);
+          }
+        }
+      }
+    };
+  }
+
+  @override
+  void dispose() {
+    flingController.dispose();
+    super.dispose();
   }
 }

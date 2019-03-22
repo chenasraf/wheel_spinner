@@ -1,4 +1,8 @@
-## [0.0.3] - 10 Mar, 2019
+## [0.0.6] - 22 Mar, 2019
+* Added style customization options
+## [0.0.5] - 22 Mar, 2019
+* Added finger fling physics to control
+## [0.0.3-0.0.4] - 10 Mar, 2019
 * Bugfixes
 ## [0.0.2] - 10 Mar, 2019
 * Added `minMaxLabelBuilder`
