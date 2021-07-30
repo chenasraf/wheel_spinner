@@ -12,10 +12,10 @@ typedef String ValueStringBuilder(double value);
 /// restricted by [max] and [min].
 class WheelSpinner extends StatefulWidget {
   /// Callback for when the user drags the slider
-  final Function(double value) onSlideUpdate;
+  final Function(double value)? onSlideUpdate;
 
   /// Callback for when the user lets go of the slider
-  final Function(double value) onSlideDone;
+  final Function(double value)? onSlideDone;
 
   /// The widget [width]
   final double width;
@@ -33,38 +33,38 @@ class WheelSpinner extends StatefulWidget {
   final double max;
 
   /// Builder for children of the slider.
-  final ValueBuilder childBuilder;
+  final ValueBuilder? childBuilder;
 
   /// Allows overriding the format of the left top and bottom labels for the [min]/[max] values
-  final ValueStringBuilder minMaxLabelBuilder;
+  final ValueStringBuilder? minMaxLabelBuilder;
 
   /// Allows to override style of labels
-  final TextStyle labelStyle;
+  final TextStyle? labelStyle;
 
   /// Override box decoration for the control
-  final BoxDecoration boxDecoration;
+  final BoxDecoration? boxDecoration;
 
   /// Override box border for the control's [boxDecoration].
   /// If [boxDecoration] is specified, it overrides this property.
-  final Border border;
+  final Border? border;
 
   /// Override border radius for the control's [boxDecoration].
   /// If [boxDecoration] is specified, it overrides this property.
-  final BorderRadius borderRadius;
+  final BorderRadius? borderRadius;
 
   /// Override background color for the control's [boxDecoration].
   /// If [boxDecoration] is specified, it overrides this property.
-  final Color color;
+  final Color? color;
 
   /// Override background gradient for the control's [boxDecoration].
   /// If [boxDecoration] is specified, it overrides this property.
-  final Gradient gradient;
+  final Gradient? gradient;
 
   /// Amount of divisions to show on the knob
   final int dividerCount;
 
   /// Color of the lines dividing the control.
-  final Color dividerColor;
+  final Color? dividerColor;
 
   ///
   final double _dragSpeedFactor = 1.0;
@@ -72,41 +72,41 @@ class WheelSpinner extends StatefulWidget {
   static ValueStringBuilder defaultMinMaxLabelBuilder =
       (v) => v.toStringAsFixed(2);
 
-  const WheelSpinner(
-      {Key key,
-      this.onSlideUpdate,
-      this.onSlideDone,
-      this.width = 60,
-      this.height = 100,
-      this.min = double.negativeInfinity,
-      this.max = double.infinity,
-      this.value = 0.5,
-      this.childBuilder,
-      this.minMaxLabelBuilder,
-      this.labelStyle,
-      this.dividerCount = 10,
-      this.dividerColor,
-      this.boxDecoration,
-      this.border,
-      this.borderRadius,
-      this.color,
-      this.gradient})
-      : super(key: key);
+  const WheelSpinner({
+    Key? key,
+    this.onSlideUpdate,
+    this.onSlideDone,
+    this.width = 60,
+    this.height = 100,
+    this.min = double.negativeInfinity,
+    this.max = double.infinity,
+    this.value = 0.5,
+    this.childBuilder,
+    this.minMaxLabelBuilder,
+    this.labelStyle,
+    this.dividerCount = 10,
+    this.dividerColor,
+    this.boxDecoration,
+    this.border,
+    this.borderRadius,
+    this.color,
+    this.gradient,
+  }) : super(key: key);
 
   @override
   _WheelSpinnerState createState() => _WheelSpinnerState();
 }
 
 class _WheelSpinnerState extends State<WheelSpinner>
-    with TickerProviderStateMixin {
-  double value;
-  double dragStartValue;
-  Offset dragStartOffset;
-  AnimationController flingController;
-  Animation<double> flingAnimation;
-  void Function() currentFlingListener;
+    with SingleTickerProviderStateMixin {
+  late double value;
+  late double dragStartValue;
+  Offset? dragStartOffset;
+  late AnimationController flingController;
+  late Animation<double> flingAnimation;
+  late void Function() currentFlingListener;
 
-  _WheelSpinnerState({this.value});
+  _WheelSpinnerState();
 
   @override
   void initState() {
@@ -118,15 +118,15 @@ class _WheelSpinnerState extends State<WheelSpinner>
 
   @override
   Widget build(BuildContext context) {
-    ValueStringBuilder minMaxBuilder =
+    var minMaxBuilder =
         widget.minMaxLabelBuilder ?? WheelSpinner.defaultMinMaxLabelBuilder;
-    double labelFontSize = Theme.of(context).textTheme.body1.fontSize * 0.75;
-    TextStyle labelStyle =
+    var labelFontSize = Theme.of(context).textTheme.bodyText2!.fontSize! * 0.75;
+    var labelStyle =
         TextStyle(fontSize: labelFontSize).merge(widget.labelStyle);
 
-    String minText =
+    var minText =
         widget.max < double.infinity ? minMaxBuilder(widget.max) : null;
-    String maxText =
+    var maxText =
         widget.min > double.negativeInfinity ? minMaxBuilder(widget.min) : null;
 
     return Container(
@@ -154,42 +154,39 @@ class _WheelSpinnerState extends State<WheelSpinner>
           AnimatedBuilder(
             animation: flingAnimation,
             builder: (context, child) => GestureDetector(
-                  onVerticalDragStart: onDragStart,
-                  onVerticalDragUpdate: onDragUpdate,
-                  onVerticalDragEnd: onDragDone,
-                  child: SizedBox.fromSize(
-                    size:
-                        Size(widget.width.toDouble(), widget.height.toDouble()),
-                    child: Container(
-                      child: Stack(
-                        children: List<Widget>.generate(
-                              widget.dividerCount + 1,
-                              (i) {
-                                var top =
-                                    lineTopPos(value, i, flingAnimation.value);
-                                return Positioned.fromRect(
-                                  rect: Rect.fromLTWH(
-                                    0.0,
-                                    top,
-                                    widget.width.toDouble(),
-                                    0,
-                                  ),
-                                  child: Divider(
-                                    color:
-                                        widget.dividerColor ?? Colors.grey[600],
-                                  ),
-                                );
-                              },
-                            ).toList() +
-                            (widget.childBuilder != null
-                                ? [widget.childBuilder(value)]
-                                : []),
-                      ),
-                      decoration: widget.boxDecoration ??
-                          _defaultBoxDecorationBuilder(),
-                    ),
+              onVerticalDragStart: onDragStart,
+              onVerticalDragUpdate: onDragUpdate,
+              onVerticalDragEnd: onDragDone,
+              child: SizedBox.fromSize(
+                size: Size(widget.width.toDouble(), widget.height.toDouble()),
+                child: Container(
+                  child: Stack(
+                    children: List<Widget>.generate(
+                          widget.dividerCount + 1,
+                          (i) {
+                            var top =
+                                lineTopPos(value, i, flingAnimation.value);
+                            return Positioned.fromRect(
+                              rect: Rect.fromLTWH(
+                                0.0,
+                                top,
+                                widget.width.toDouble(),
+                                0,
+                              ),
+                              child: Divider(
+                                color: widget.dividerColor ?? Colors.grey[600],
+                              ),
+                            );
+                          },
+                        ).toList() +
+                        (widget.childBuilder != null
+                            ? [widget.childBuilder!(value)]
+                            : []),
                   ),
+                  decoration: widget.boxDecoration ?? _boxDecorationBuilder(),
                 ),
+              ),
+            ),
           ),
           Expanded(
             child: Padding(
@@ -209,19 +206,19 @@ class _WheelSpinnerState extends State<WheelSpinner>
     );
   }
 
-  BoxDecoration _defaultBoxDecorationBuilder() {
+  BoxDecoration _boxDecorationBuilder() {
     double shadowOffset = 0.2;
     var decoration = BoxDecoration(
-      gradient: widget.gradient ?? widget.color == null
+      gradient: (widget.gradient ?? widget.color) == null
           ? LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               stops: [0.0, shadowOffset, 1.0 - shadowOffset, 1.0],
               colors: [
-                Colors.grey[350],
-                Colors.grey[50],
-                Colors.grey[50],
-                Colors.grey[350]
+                Colors.grey[350]!,
+                Colors.grey[50]!,
+                Colors.grey[50]!,
+                Colors.grey[350]!
               ],
             )
           : null,
@@ -230,7 +227,7 @@ class _WheelSpinnerState extends State<WheelSpinner>
           Border.all(
             width: 1,
             style: BorderStyle.solid,
-            color: Colors.grey[600],
+            color: Colors.grey[600]!,
           ),
       borderRadius: widget.borderRadius ?? BorderRadius.circular(3.5),
     );
@@ -264,20 +261,16 @@ class _WheelSpinnerState extends State<WheelSpinner>
     setState(() {
       value = newValue;
     });
-    if (widget.onSlideUpdate != null) {
-      widget.onSlideUpdate(value);
-    }
+    widget.onSlideUpdate?.call(value);
   }
 
   void onDragDone(DragEndDetails details) {
     setState(() {
       dragStartOffset = null;
     });
-    double velocity = details.primaryVelocity;
+    double velocity = details.primaryVelocity!;
     if (velocity.abs() == 0) {
-      if (widget.onSlideDone != null) {
-        widget.onSlideDone(value);
-      }
+      widget.onSlideDone?.call(value);
       return;
     }
     double originalValue = value;
@@ -303,13 +296,9 @@ class _WheelSpinnerState extends State<WheelSpinner>
           value = newValue;
         });
         if (flingAnimation.value == flingController.upperBound) {
-          if (widget.onSlideDone != null) {
-            widget.onSlideDone(value);
-          }
+          widget.onSlideDone?.call(value);
         } else {
-          if (widget.onSlideUpdate != null) {
-            widget.onSlideUpdate(value);
-          }
+          widget.onSlideUpdate?.call(value);
         }
       }
     };
