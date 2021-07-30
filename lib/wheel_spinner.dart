@@ -1,7 +1,5 @@
 library wheel_spinner;
 
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:wheel_spinner/utils.dart';
 
