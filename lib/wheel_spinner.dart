@@ -1,3 +1,4 @@
+/// The main library for the wheel spinner.
 library wheel_spinner;
 
 import 'package:flutter/material.dart';
