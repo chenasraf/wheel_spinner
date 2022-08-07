@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:wheel_spinner/wheel_spinner.dart';
@@ -11,6 +13,12 @@ class MyWidget extends StatefulWidget {
 
 class _MyWidgetState extends State<MyWidget> {
   late double value;
+
+  @override
+  void initState() {
+    value = Random().nextDouble() * 100;
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
