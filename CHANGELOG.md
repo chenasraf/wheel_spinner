@@ -1,3 +1,7 @@
+## [0.5.1] - Aug 8, 2022
+
+- Add example.dart
+
 ## [0.5.0] - Aug 8, 2022
 
 - General code improvement + finalize null safety support
