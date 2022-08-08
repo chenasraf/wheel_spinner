@@ -18,12 +18,44 @@ event handlers. Here is a simple usage example:
 Widget build(BuildContext context) {
   return WheelSpinner(
     value: value,
-    width: width,
     min: 0.0,
     max: 100.0,
-    borderRadius: borderRadius,
-    minMaxLabelBuilder: (value) => value,
     onSlideUpdate: (val) => onChange(value),
   );
 }
+```
+
+## Customizing the theme
+
+You can use the `theme` property to override a theme once, or wrap many sliders in the same
+`WheelSpinnerTheme` widget, which references a theme in its' `data` property.
+
+**Direct override example:**
+
+```dart
+WheelSpinner(
+  value: value,
+  min: 0.0,
+  max: 100.0,
+  onSlideUpdate: (val) => onChange(value),
+  theme: WheelSpinnerThemeData.light().copyWith(
+    borderRadius: BorderRadius.circular(10),
+  ),
+)
+```
+
+**Inherited widget override example:**
+
+```dart
+WheelSpinnerTheme(
+  data: WheelSpinnerThemeData.light().copyWith(
+    borderRadius: BorderRadius.circular(10),
+  ),
+  child: WheelSpinner(
+    value: value,
+    min: 0.0,
+    max: 100.0,
+    onSlideUpdate: (val) => onChange(value),
+  ),
+)
 ```

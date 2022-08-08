@@ -1,7 +1,6 @@
 import 'dart:math';
 
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:flutter/src/widgets/container.dart';
+import 'package:flutter/material.dart';
 import 'package:wheel_spinner/wheel_spinner.dart';
 
 class MyWidget extends StatefulWidget {
@@ -22,14 +21,23 @@ class _MyWidgetState extends State<MyWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final width = 100.0;
-
-    return WheelSpinner(
-      value: value,
-      width: width,
-      min: 0.0,
-      max: 100.0,
-      onSlideUpdate: (val) => setState(() => value = val),
+    return Center(
+      child: SizedBox(
+        width: 100,
+        height: 60,
+        child: WheelSpinnerTheme(
+          data: WheelSpinnerThemeData.light().copyWith(
+            borderRadius: BorderRadius.circular(10),
+            dividerColor: Colors.black,
+          ),
+          child: WheelSpinner(
+            value: value,
+            min: 0.0,
+            max: 100.0,
+            onSlideUpdate: (val) => setState(() => value = val),
+          ),
+        ),
+      ),
     );
   }
 }

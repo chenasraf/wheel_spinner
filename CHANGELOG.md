@@ -1,3 +1,15 @@
+## 0.6.0
+
+- Use `WheelSpinnerTheme` and `WheelSpinnerThemeData` to define styles, similar to `Theme` and
+  `ThemeData` in Flutter
+
+- Remove min/max labels and +/- symbols as they are too coupled to the widget which doesn't seem to
+  be in its' logical scope. It can be easily recreated and modified more extensively when done
+  manually.
+
+- Remove height/width params - the widget adheres to its parent constraints, and since the labels
+  are not being built, the constraints can reliably set the size of the widget.
+
 ## 0.5.1
 
 - Add example.dart

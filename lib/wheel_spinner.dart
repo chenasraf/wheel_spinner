@@ -3,6 +3,9 @@ library wheel_spinner;
 
 import 'package:flutter/material.dart';
 import 'package:wheel_spinner/utils.dart';
+import 'package:wheel_spinner/wheel_spinner_theme.dart';
+
+export 'wheel_spinner_theme.dart';
 
 typedef ValueBuilder = Widget Function(double value);
 typedef ValueStringBuilder = String Function(double value);
@@ -15,12 +18,6 @@ class WheelSpinner extends StatefulWidget {
 
   /// Callback for when the user lets go of the slider
   final Function(double value)? onSlideDone;
-
-  /// The widget [width]
-  final double width;
-
-  /// The widget [height]
-  final double height;
 
   /// The initial [value] for the slider
   final double value;
@@ -37,60 +34,26 @@ class WheelSpinner extends StatefulWidget {
   /// Allows overriding the format of the left top and bottom labels for the [min]/[max] values
   final ValueStringBuilder? minMaxLabelBuilder;
 
-  /// Allows to override style of labels
-  final TextStyle? labelStyle;
-
-  /// Override box decoration for the control
-  final BoxDecoration? boxDecoration;
-
-  /// Override box border for the control's [boxDecoration].
-  /// If [boxDecoration] is specified, it overrides this property.
-  final Border? border;
-
-  /// Override border radius for the control's [boxDecoration].
-  /// If [boxDecoration] is specified, it overrides this property.
-  final BorderRadius? borderRadius;
-
-  /// Override background color for the control's [boxDecoration].
-  /// If [boxDecoration] is specified, it overrides this property.
-  final Color? color;
-
-  /// Override background gradient for the control's [boxDecoration].
-  /// If [boxDecoration] is specified, it overrides this property.
-  final Gradient? gradient;
-
-  /// Amount of divisions to show on the knob
-  final int dividerCount;
-
-  /// Color of the lines dividing the control.
-  final Color? dividerColor;
-
   /// The drag speed factor
   final double _dragSpeedFactor = 1.0;
+
+  /// The theme for this wheel spinner
+  final WheelSpinnerThemeData? theme;
 
   /// The default min/max label builder.
   static ValueStringBuilder defaultMinMaxLabelBuilder = (v) => v.toStringAsFixed(2);
 
-  const WheelSpinner(
-      {Key? key,
-      this.onSlideUpdate,
-      this.onSlideDone,
-      this.width = 60,
-      this.height = 100,
-      this.min = double.negativeInfinity,
-      this.max = double.infinity,
-      this.value = 0.5,
-      this.childBuilder,
-      this.minMaxLabelBuilder,
-      this.labelStyle,
-      this.dividerCount = 10,
-      this.dividerColor,
-      this.boxDecoration,
-      this.border,
-      this.borderRadius,
-      this.color,
-      this.gradient})
-      : super(key: key);
+  const WheelSpinner({
+    Key? key,
+    this.onSlideUpdate,
+    this.onSlideDone,
+    this.min = double.negativeInfinity,
+    this.max = double.infinity,
+    this.value = 0.5,
+    this.childBuilder,
+    this.minMaxLabelBuilder,
+    this.theme,
+  }) : super(key: key);
 
   @override
   // ignore: library_private_types_in_public_api
@@ -115,57 +78,61 @@ class _WheelSpinnerState extends State<WheelSpinner> with SingleTickerProviderSt
     super.initState();
   }
 
+  WheelSpinnerThemeData get theme => defaultTheme.copyWith(
+        border: widget.theme?.border,
+        borderRadius: widget.theme?.borderRadius,
+        color: widget.theme?.color,
+        gradient: widget.theme?.gradient,
+        boxDecoration: widget.theme?.boxDecoration,
+        dividerCount: widget.theme?.dividerCount,
+        dividerColor: widget.theme?.dividerColor,
+      );
+
+  WheelSpinnerThemeData get defaultTheme =>
+      WheelSpinnerTheme.of(context) ??
+      (Theme.of(context).brightness == Brightness.light
+          ? WheelSpinnerThemeData.light()
+          : WheelSpinnerThemeData.dark());
+
   @override
   Widget build(BuildContext context) {
-    final minMaxBuilder = widget.minMaxLabelBuilder ?? WheelSpinner.defaultMinMaxLabelBuilder;
-    final labelFontSize = Theme.of(context).textTheme.bodyText2!.fontSize! * 0.75;
-    final labelStyle = TextStyle(fontSize: labelFontSize).merge(widget.labelStyle);
-
-    final minText = widget.max < double.infinity ? minMaxBuilder(widget.max) : null;
-    final maxText = widget.min > double.negativeInfinity ? minMaxBuilder(widget.min) : null;
-
-    return SizedBox(
-      height: widget.height,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(right: 4.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: <Widget>[
-                  minText != null ? Text(minText, style: labelStyle) : Container(),
-                  maxText != null ? Text(maxText, style: labelStyle) : Container(),
-                ],
-              ),
-            ),
-          ),
-          AnimatedBuilder(
-            animation: flingAnimation,
-            builder: (context, child) => GestureDetector(
-              onVerticalDragStart: onDragStart,
-              onVerticalDragUpdate: onDragUpdate,
-              onVerticalDragEnd: onDragDone,
-              child: SizedBox.fromSize(
-                size: Size(widget.width.toDouble(), widget.height.toDouble()),
+    return LayoutBuilder(builder: (context, constraints) {
+      debugPrint('borderRadius: ${theme.borderRadius}');
+      return SizedBox(
+        width: constraints.maxWidth,
+        height: constraints.maxHeight,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            AnimatedBuilder(
+              animation: flingAnimation,
+              builder: (context, child) => GestureDetector(
+                onVerticalDragStart: onDragStart,
+                onVerticalDragUpdate: onDragUpdate,
+                onVerticalDragEnd: onDragDone,
                 child: Container(
-                  decoration: widget.boxDecoration ?? _boxDecorationBuilder(),
+                  width: constraints.maxWidth,
+                  height: constraints.maxHeight,
+                  decoration: theme.boxDecoration ?? _boxDecorationBuilder(),
                   child: Stack(
                     children: List<Widget>.generate(
-                          widget.dividerCount + 1,
+                          theme.dividerCount + 1,
                           (i) {
-                            final top = lineTopPos(value, i, flingAnimation.value);
+                            final top = lineTopPos(
+                              value,
+                              i,
+                              flingAnimation.value,
+                              constraints.maxHeight,
+                            );
                             return Positioned.fromRect(
                               rect: Rect.fromLTWH(
                                 0.0,
                                 top,
-                                widget.width.toDouble(),
+                                constraints.maxWidth,
                                 0,
                               ),
                               child: Divider(
-                                color: widget.dividerColor ?? Colors.grey[600],
+                                color: theme.dividerColor,
                               ),
                             );
                           },
@@ -175,50 +142,24 @@ class _WheelSpinnerState extends State<WheelSpinner> with SingleTickerProviderSt
                 ),
               ),
             ),
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(left: 4.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text('+', style: labelStyle),
-                  Text('-', style: labelStyle),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+          ],
+        ),
+      );
+    });
   }
 
   BoxDecoration _boxDecorationBuilder() {
-    const shadowOffset = 0.2;
     return BoxDecoration(
-      gradient: (widget.gradient ?? widget.color) == null
-          ? LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              stops: const [0.0, shadowOffset, 1.0 - shadowOffset, 1.0],
-              colors: [Colors.grey[350]!, Colors.grey[50]!, Colors.grey[50]!, Colors.grey[350]!],
-            )
-          : null,
-      color: widget.color,
-      border: widget.border ??
-          Border.all(
-            width: 1,
-            style: BorderStyle.solid,
-            color: Colors.grey[600]!,
-          ),
-      borderRadius: widget.borderRadius ?? BorderRadius.circular(3.5),
+      gradient: theme.gradient,
+      color: theme.color,
+      border: theme.border,
+      borderRadius: theme.borderRadius,
     );
   }
 
-  double lineTopPos(double value, int i, double fling) {
-    final valueFraction = (value.ceil() - value) * widget.dividerCount;
-    final indexedTop = (widget.height / widget.dividerCount * i);
+  double lineTopPos(double value, int i, double fling, double maxHeight) {
+    final valueFraction = (value.ceil() - value) * theme.dividerCount;
+    final indexedTop = (maxHeight / theme.dividerCount * i);
     final top = indexedTop + valueFraction;
     return top;
   }
