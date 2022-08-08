@@ -41,7 +41,8 @@ class WheelSpinner extends StatefulWidget {
   final WheelSpinnerThemeData? theme;
 
   /// The default min/max label builder.
-  static ValueStringBuilder defaultMinMaxLabelBuilder = (v) => v.toStringAsFixed(2);
+  static ValueStringBuilder defaultMinMaxLabelBuilder =
+      (v) => v.toStringAsFixed(2);
 
   const WheelSpinner({
     Key? key,
@@ -60,7 +61,8 @@ class WheelSpinner extends StatefulWidget {
   _WheelSpinnerState createState() => _WheelSpinnerState();
 }
 
-class _WheelSpinnerState extends State<WheelSpinner> with SingleTickerProviderStateMixin {
+class _WheelSpinnerState extends State<WheelSpinner>
+    with SingleTickerProviderStateMixin {
   late double value;
   late double dragStartValue;
   Offset? dragStartOffset;
@@ -137,7 +139,9 @@ class _WheelSpinnerState extends State<WheelSpinner> with SingleTickerProviderSt
                             );
                           },
                         ).toList() +
-                        (widget.childBuilder != null ? [widget.childBuilder!(value)] : []),
+                        (widget.childBuilder != null
+                            ? [widget.childBuilder!(value)]
+                            : []),
                   ),
                 ),
               ),
@@ -177,7 +181,8 @@ class _WheelSpinnerState extends State<WheelSpinner> with SingleTickerProviderSt
     flingController.stop();
     final newValue = clamp(
         dragStartValue -
-            (details.globalPosition - dragStartOffset).dy / (20.0 / widget._dragSpeedFactor),
+            (details.globalPosition - dragStartOffset).dy /
+                (20.0 / widget._dragSpeedFactor),
         widget.min,
         widget.max);
     setState(() {
@@ -198,11 +203,12 @@ class _WheelSpinnerState extends State<WheelSpinner> with SingleTickerProviderSt
     final originalValue = value;
     currentFlingListener = flingListener(originalValue);
     flingController.duration = Duration(milliseconds: velocity.abs().toInt());
-    flingAnimation = Tween(begin: 0.0, end: velocity / 100).animate(CurvedAnimation(
+    flingAnimation =
+        Tween(begin: 0.0, end: velocity / 100).animate(CurvedAnimation(
       curve: Curves.decelerate,
       parent: flingController,
     ))
-      ..addListener(currentFlingListener);
+          ..addListener(currentFlingListener);
     flingController
       ..reset()
       ..forward();
@@ -210,7 +216,8 @@ class _WheelSpinnerState extends State<WheelSpinner> with SingleTickerProviderSt
 
   flingListener(double originalValue) {
     return () {
-      final newValue = clamp(originalValue - flingAnimation.value, widget.min, widget.max);
+      final newValue =
+          clamp(originalValue - flingAnimation.value, widget.min, widget.max);
       if (newValue != value) {
         setState(() {
           value = newValue;

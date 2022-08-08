@@ -45,7 +45,8 @@ class WheelSpinnerThemeData {
   static const double defaultShadowOffset = 0.2;
 
   /// default border radius for both light+dark themes
-  static const BorderRadius defaultBorderRadius = BorderRadius.all(Radius.circular(8));
+  static const BorderRadius defaultBorderRadius =
+      BorderRadius.all(Radius.circular(8));
 
   /// A default light theme
   WheelSpinnerThemeData.light()
@@ -59,8 +60,18 @@ class WheelSpinnerThemeData {
         gradient = LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          stops: const [0.0, defaultShadowOffset, 1.0 - defaultShadowOffset, 1.0],
-          colors: [Colors.grey[350]!, Colors.grey[50]!, Colors.grey[50]!, Colors.grey[350]!],
+          stops: const [
+            0.0,
+            defaultShadowOffset,
+            1.0 - defaultShadowOffset,
+            1.0
+          ],
+          colors: [
+            Colors.grey[350]!,
+            Colors.grey[50]!,
+            Colors.grey[50]!,
+            Colors.grey[350]!
+          ],
         ),
         borderRadius = defaultBorderRadius,
         boxDecoration = null,
@@ -70,16 +81,17 @@ class WheelSpinnerThemeData {
   WheelSpinnerThemeData.dark()
       : dividerColor = Colors.grey[800],
         dividerCount = 10,
-        border = Border.all(
-          width: 1,
-          style: BorderStyle.solid,
-          color: Colors.grey[600]!,
-        ),
+        border = null,
         gradient = LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           stops: const [0.0, defaultShadowOffset, 1 - defaultShadowOffset, 1.0],
-          colors: [Colors.black, Colors.grey[900]!, Colors.grey[900]!, Colors.black],
+          colors: [
+            Colors.black,
+            Colors.grey[900]!,
+            Colors.grey[900]!,
+            Colors.black
+          ],
         ),
         borderRadius = defaultBorderRadius,
         boxDecoration = null,
@@ -121,7 +133,8 @@ class WheelSpinnerTheme extends InheritedWidget {
   });
 
   @override
-  bool updateShouldNotify(covariant WheelSpinnerTheme oldWidget) => oldWidget.data != data;
+  bool updateShouldNotify(covariant WheelSpinnerTheme oldWidget) =>
+      oldWidget.data != data;
 
   /// Get the nearest wheel spinner theme data up the widget tree from the given context.
   static WheelSpinnerThemeData? of(BuildContext context) =>

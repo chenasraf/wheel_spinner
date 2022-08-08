@@ -1,3 +1,7 @@
+## 0.6.1
+
+- Update dark theme - remove border
+
 ## 0.6.0
 
 - Use `WheelSpinnerTheme` and `WheelSpinnerThemeData` to define styles, similar to `Theme` and
