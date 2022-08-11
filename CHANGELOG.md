@@ -1,3 +1,8 @@
+## 0.6.2
+
+- Remove unused `minMaxLabelBuilder` argument
+- Add `onSlideStart` argument for `WheelSpinner`
+
 ## 0.6.1
 
 - Update dark theme - remove border

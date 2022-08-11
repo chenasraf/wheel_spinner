@@ -10,9 +10,12 @@ export 'wheel_spinner_theme.dart';
 typedef ValueBuilder = Widget Function(double value);
 typedef ValueStringBuilder = String Function(double value);
 
-/// Shows a "dial" spinner that can be dragged up or down, either unlimited or
+/// Shows a pitch-bend-like knob that can be dragged up or down, either unlimited or
 /// restricted by [max] and [min].
 class WheelSpinner extends StatefulWidget {
+  /// Callback for when the user starts dragging the slider
+  final Function(double details)? onSlideStart;
+
   /// Callback for when the user drags the slider
   final Function(double value)? onSlideUpdate;
 
@@ -22,17 +25,14 @@ class WheelSpinner extends StatefulWidget {
   /// The initial [value] for the slider
   final double value;
 
-  /// Minimum value to allow sliding to. Also appears on the bottom left of the slider
+  /// Minimum value to allow sliding to.
   final double min;
 
-  /// Minimum value to allow sliding to. Also appears on the top left of the slider
+  /// Minimum value to allow sliding to.
   final double max;
 
   /// Builder for children of the slider.
   final ValueBuilder? childBuilder;
-
-  /// Allows overriding the format of the left top and bottom labels for the [min]/[max] values
-  final ValueStringBuilder? minMaxLabelBuilder;
 
   /// The drag speed factor
   final double _dragSpeedFactor = 1.0;
@@ -40,19 +40,15 @@ class WheelSpinner extends StatefulWidget {
   /// The theme for this wheel spinner
   final WheelSpinnerThemeData? theme;
 
-  /// The default min/max label builder.
-  static ValueStringBuilder defaultMinMaxLabelBuilder =
-      (v) => v.toStringAsFixed(2);
-
   const WheelSpinner({
     Key? key,
+    this.onSlideStart,
     this.onSlideUpdate,
     this.onSlideDone,
     this.min = double.negativeInfinity,
     this.max = double.infinity,
     this.value = 0.5,
     this.childBuilder,
-    this.minMaxLabelBuilder,
     this.theme,
   }) : super(key: key);
 
@@ -98,9 +94,8 @@ class _WheelSpinnerState extends State<WheelSpinner>
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (context, constraints) {
-      debugPrint('borderRadius: ${theme.borderRadius}');
-      return SizedBox(
+    return LayoutBuilder(
+      builder: (context, constraints) => SizedBox(
         width: constraints.maxWidth,
         height: constraints.maxHeight,
         child: Row(
@@ -109,8 +104,8 @@ class _WheelSpinnerState extends State<WheelSpinner>
             AnimatedBuilder(
               animation: flingAnimation,
               builder: (context, child) => GestureDetector(
-                onVerticalDragStart: onDragStart,
-                onVerticalDragUpdate: onDragUpdate,
+                onVerticalDragStart: _onDragStart,
+                onVerticalDragUpdate: _onDragUpdate,
                 onVerticalDragEnd: onDragDone,
                 child: Container(
                   width: constraints.maxWidth,
@@ -120,7 +115,7 @@ class _WheelSpinnerState extends State<WheelSpinner>
                     children: List<Widget>.generate(
                           theme.dividerCount + 1,
                           (i) {
-                            final top = lineTopPos(
+                            final top = _linePos(
                               value,
                               i,
                               flingAnimation.value,
@@ -148,40 +143,39 @@ class _WheelSpinnerState extends State<WheelSpinner>
             ),
           ],
         ),
-      );
-    });
-  }
-
-  BoxDecoration _boxDecorationBuilder() {
-    return BoxDecoration(
-      gradient: theme.gradient,
-      color: theme.color,
-      border: theme.border,
-      borderRadius: theme.borderRadius,
+      ),
     );
   }
 
-  double lineTopPos(double value, int i, double fling, double maxHeight) {
+  BoxDecoration _boxDecorationBuilder() => BoxDecoration(
+        gradient: theme.gradient,
+        color: theme.color,
+        border: theme.border,
+        borderRadius: theme.borderRadius,
+      );
+
+  double _linePos(double value, int i, double fling, double maxHeight) {
     final valueFraction = (value.ceil() - value) * theme.dividerCount;
     final indexedTop = (maxHeight / theme.dividerCount * i);
     final top = indexedTop + valueFraction;
     return top;
   }
 
-  void onDragStart(details) {
+  void _onDragStart(DragStartDetails details) {
     flingController.stop();
     flingAnimation = const AlwaysStoppedAnimation(0.0);
     setState(() {
       dragStartOffset = details.globalPosition;
       dragStartValue = value;
     });
+    widget.onSlideStart?.call(value);
   }
 
-  void onDragUpdate(details) {
+  void _onDragUpdate(DragUpdateDetails details) {
     flingController.stop();
     final newValue = clamp(
         dragStartValue -
-            (details.globalPosition - dragStartOffset).dy /
+            (details.globalPosition - dragStartOffset!).dy /
                 (20.0 / widget._dragSpeedFactor),
         widget.min,
         widget.max);

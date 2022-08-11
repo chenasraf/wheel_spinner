@@ -124,6 +124,7 @@ class WheelSpinnerThemeData {
 /// Any wheel spinners below this widget in the tree will
 /// inherit the theme given in [data], except when overridden manually as a property of the wheel spinner itself.
 class WheelSpinnerTheme extends InheritedWidget {
+  /// The theme data for the children of this widget
   final WheelSpinnerThemeData data;
 
   const WheelSpinnerTheme({
