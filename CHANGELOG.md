@@ -1,3 +1,10 @@
+## 0.7.0
+
+- Add `childPosition` argument
+- Remove excess public members
+- Fix clipping behavior
+- Improve theme delegation
+
 ## 0.6.2
 
 - Remove unused `minMaxLabelBuilder` argument

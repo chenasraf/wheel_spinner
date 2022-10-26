@@ -12,15 +12,22 @@ or drag as in the example below.
 Simply import the package, and use the exposed `WheelSpinner` widget.
 
 See all the individual parameters for more details on theme and display customization, as well as
-event handlers. Here is a simple usage example:
+event handlers. Here is a a full usage example:
 
 ```dart
 Widget build(BuildContext context) {
   return WheelSpinner(
+    // required
     value: value,
     min: 0.0,
     max: 100.0,
+
+    // optional
+    onSlideStart: (val) => debugPrint(value),
     onSlideUpdate: (val) => onChange(value),
+    onSlideDone: (val) => debugPrint(value),
+    childBuilder: (val) => Text(val.toString()),
+    theme: WheelSpinnerTheme.light(),
   );
 }
 ```
@@ -38,7 +45,7 @@ WheelSpinner(
   min: 0.0,
   max: 100.0,
   onSlideUpdate: (val) => onChange(value),
-  theme: WheelSpinnerThemeData.light().copyWith(
+  theme: WheelSpinnerTheme.light().copyWith(
     borderRadius: BorderRadius.circular(10),
   ),
 )
@@ -48,7 +55,7 @@ WheelSpinner(
 
 ```dart
 WheelSpinnerTheme(
-  data: WheelSpinnerThemeData.light().copyWith(
+  data: WheelSpinnerTheme.light().copyWith(
     borderRadius: BorderRadius.circular(10),
   ),
   child: WheelSpinner(

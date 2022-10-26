@@ -140,4 +140,10 @@ class WheelSpinnerTheme extends InheritedWidget {
   /// Get the nearest wheel spinner theme data up the widget tree from the given context.
   static WheelSpinnerThemeData? of(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<WheelSpinnerTheme>()?.data;
+
+  /// A default light theme
+  static WheelSpinnerThemeData light() => WheelSpinnerThemeData.light();
+
+  /// A default dark theme
+  static WheelSpinnerThemeData dark() => WheelSpinnerThemeData.dark();
 }
