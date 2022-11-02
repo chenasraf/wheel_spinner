@@ -1,6 +1,6 @@
 name: wheel_spinner
 description: A simple Flutter widget for updating a number using a pitch bender-like spinner
-version: 0.7.0
+version: 0.7.1
 homepage: https://github.com/chenasraf/wheel_spinner
 repository: https://github.com/chenasraf/wheel_spinner
 

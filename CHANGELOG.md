@@ -1,3 +1,7 @@
+## 0.7.1
+
+- Fix Flutter v2 support
+
 ## 0.7.0
 
 - Add `childPosition` argument
