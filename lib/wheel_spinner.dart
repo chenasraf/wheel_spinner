@@ -133,7 +133,8 @@ class _WheelSpinnerState extends State<WheelSpinner>
                     decoration: _theme.boxDecoration ?? _boxDecorationBuilder(),
                     child: ClipRRect(
                       clipBehavior: Clip.antiAlias,
-                      borderRadius: _theme.boxDecoration?.borderRadius ??
+                      borderRadius: _theme.boxDecoration?.borderRadius
+                              ?.resolve(Directionality.of(context)) ??
                           _theme.borderRadius,
                       child: Stack(
                         children: [
