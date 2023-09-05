@@ -135,7 +135,7 @@ class _WheelSpinnerState extends State<WheelSpinner>
                       clipBehavior: Clip.antiAlias,
                       borderRadius: _theme.boxDecoration?.borderRadius
                               ?.resolve(Directionality.of(context)) ??
-                          _theme.borderRadius,
+                          _theme.borderRadius ?? WheelSpinnerThemeData.defaultBorderRadius,
                       child: Stack(
                         children: [
                           if (_child != null &&

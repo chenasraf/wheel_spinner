@@ -14,7 +14,7 @@ class WheelSpinnerThemeData {
 
   /// Override border radius for the control's [boxDecoration].
   /// If [boxDecoration] is specified, this is ignored.
-  final BorderRadius? borderRadius;
+  final BorderRadiusGeometry? borderRadius;
 
   /// Override background color for the control's [boxDecoration].
   /// If [boxDecoration] or [gradient] is specified, this is ignored.
@@ -102,7 +102,7 @@ class WheelSpinnerThemeData {
   WheelSpinnerThemeData copyWith({
     BoxDecoration? boxDecoration,
     Border? border,
-    BorderRadius? borderRadius,
+    BorderRadiusGeometry? borderRadius,
     Color? color,
     Gradient? gradient,
     int? dividerCount,
