@@ -1,3 +1,7 @@
+## 0.7.2
+
+- Fix Flutter v3 support
+
 ## 0.7.1
 
 - Fix Flutter v2 support
