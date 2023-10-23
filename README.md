@@ -4,8 +4,7 @@ WheelSpinner provides you with a simple number spinner that resembles a wheel, k
 specifically pitch bender knobs. It allows you to update a single `double` value with a finger fling
 or drag as in the example below.
 
-<img src="https://casraf.blog/assets/images/wheel-spinner-tutorial/scr04.gif" width="300px" />
-<img src="https://casraf.blog/assets/images/wheel-spinner-tutorial/scr05.gif" width="300px" />
+<img src="https://casraf.blog/assets/images/wheel-spinner-tutorial/scr04.gif" width="300px" /> <img src="https://casraf.blog/assets/images/wheel-spinner-tutorial/scr05.gif" width="300px" />
 
 ## How to use
 
