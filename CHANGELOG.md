@@ -1,3 +1,8 @@
+## 0.7.3
+
+- Update dependencies
+- Remove pubspec.lock file
+
 ## 0.7.2
 
 - Fix Flutter v3 support
