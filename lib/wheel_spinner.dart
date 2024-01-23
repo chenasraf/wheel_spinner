@@ -48,7 +48,7 @@ class WheelSpinner extends StatefulWidget {
   /// The theme for this wheel spinner
   final WheelSpinnerThemeData? theme;
 
-  /// The position of the child on the control. If [childProvider] is null, this has no effect.
+  /// The position of the child on the control. If [childBuilder] is null, this has no effect.
   final WheelSpinnerChildPosition? childPosition;
 
   const WheelSpinner({
@@ -135,7 +135,8 @@ class _WheelSpinnerState extends State<WheelSpinner>
                       clipBehavior: Clip.antiAlias,
                       borderRadius: _theme.boxDecoration?.borderRadius
                               ?.resolve(Directionality.of(context)) ??
-                          _theme.borderRadius ?? WheelSpinnerThemeData.defaultBorderRadius,
+                          _theme.borderRadius ??
+                          WheelSpinnerThemeData.defaultBorderRadius,
                       child: Stack(
                         children: [
                           if (_child != null &&

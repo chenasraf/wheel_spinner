@@ -54,7 +54,6 @@ flutter:
   # https://flutter.io/custom-fonts/#from-packages
 
 script_runner:
-  shell: /bin/zsh
   scripts:
-    - doc: flutter pub global run dartdoc:dartdoc
+    - doc: dart doc
     - publish: flutter pub publish
